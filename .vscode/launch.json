@@ -89,8 +89,9 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "stlink",
-            //"stlinkPath": "D:/CubeIDE/STM32CubeIDE_1.8.0/.../bin/ST-LINK_gdbserver.exe",
+            // normally ST-Link will be installed somewhere here. Cube Version may differ
             //"stlinkPath":"c:/ST/STM32CubeIDE_1.7.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.stlink-gdb-server.win32_2.0.0.202105311346/tools/bin/ST-LINK_gdbserver.exe",
+            // moved the ST-Link to a more pleasant place
             "stlinkPath":"c:/devtools/st-link/ST-LINK_gdbserver.exe",
             //"stm32cubeprogrammer": "D:/CubeProgrammer/bin",
             "device": "STM32F469NI",
