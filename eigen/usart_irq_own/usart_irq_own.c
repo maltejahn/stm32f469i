@@ -73,7 +73,7 @@ static void gpio_setup(void)
 	/* Setup GPIO pin GPIO13 on GPIO port G for LED. */
 	gpio_mode_setup(GPIOG, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO6);
 }
-
+ 
 int main(void)
 {
 	clock_setup();

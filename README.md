@@ -8,6 +8,8 @@ Aim:
 
 -- Original description
 
+-> Changing libopencm3 to a more recent version
+
 
 STM32F469I-Discovery Code
 -------------------------

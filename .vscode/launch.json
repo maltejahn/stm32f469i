@@ -5,30 +5,85 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "cwd": "${workspaceFolder}/${input:TargetSubDir}",
+            "executable": "${workspaceFolder}/${input:TargetSubDir}/usart_irq_own.elf",
+            "name": "Debug with ST-Util",
+            "request": "launch",
+            "type": "cortex-debug",
+            "device" : "STM32F469HI",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "none",
+            "servertype": "stutil"
+        },
+        {
+            "cwd": "${workspaceFolder}/${input:TargetSubDir}",
+            "executable": "${workspaceFolder}/${input:TargetSubDir}/usart_irq_own.elf",
+            "name": "Debug with ST-Link",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "both",
+            "servertype": "stlink",
+            "debugServer": 4242
+        },
+        {
             "name": "Cortex Debug",
+            "cwd": "${workspaceFolder}/${input:TargetSubDir}",
+            "executable": "${workspaceFolder}/${input:TargetSubDir}/usart_irq_own.elf",
+            //"executable": "${workspaceFolder}/${input:TargetSubDir}/${input.elf}",
+            "request": "launch",
+            "type": "cortex-debug",
+            "device" : "STM32F469HI",
+            "runToEntryPoint": "main",
+            "servertype": "stlink",
+            "showDevDebugOutput": "both",
+            "interface": "swd",
+            "debugServer": 4242,
+            "preRestartCommands": [
+                "load",
+                "enable breakpoint",
+                "monitor reset"
+            ],
+
+        },
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "runToEntryPoint": "main",
+            "cwd": "${workspaceFolder}/${input:TargetSubDir}",
+            "executable": "${workspaceFolder}/${input:TargetSubDir}/usart_irq_own.elf",
+            "name": "Debug (OpenOCD)",
+            "device": "STM32F469NI",
+            
+            "configFiles": [
+              "openocd.cfg"
+            ],
+            "preRestartCommands": [
+                "load",
+                "enable breakpoint",
+                "monitor reset"
+            ],
+            "svdFile": "STM32F469.svd"
+          },
+          {
+            "name": "My Debug",
             "cwd": "${workspaceFolder}/${input:TargetSubDir}",
             "executable": "${workspaceFolder}/${input:TargetSubDir}/usart_irq_own.elf",
             "request": "launch",
             "type": "cortex-debug",
-            "device" : "STM32F469NI",
-            "runToEntryPoint": "main",
-            "servertype": "stlink",
-            "showDevDebugOutput": "raw",
-           /* "swoConfig": {
-                "enabled": true,
-                "cpuFrequency": 180000000,
-                "swoFrequency": 2000000,
-                "source": "probe",
-                "decoders": [
-                    {
-                        "type": "console",
-                        "label": "ITM"
-                        "port": 0
-                    }
-                ]
-            }*/
+            "servertype": "openocd",
+            "interface":"swd",
+            "device": "STM32F767",
+            "configFiles": [
+                "openocd.cfg"
+            ],
+            "svdFile": "${workspaceRoot}/STM32F469.svd",
+            //"preLaunchTask": "Build All",
+            "showDevDebugOutput": "both",
         }
 
+    
     ],
     "inputs": [
         {
