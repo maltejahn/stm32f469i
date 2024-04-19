@@ -1,0 +1,47 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Cortex Debug",
+            "cwd": "${workspaceFolder}/${input:TargetSubDir}",
+            "executable": "${workspaceFolder}/${input:TargetSubDir}/usart_irq_own.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "device" : "STM32F469NI",
+            "runToEntryPoint": "main",
+            "servertype": "stlink",
+            "showDevDebugOutput": "raw",
+           /* "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 180000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    {
+                        "type": "console",
+                        "label": "ITM"
+                        "port": 0
+                    }
+                ]
+            }*/
+        }
+
+    ],
+    "inputs": [
+        {
+            "id": "elf",
+            "type": "command",
+            "command": "cpptools.activeConfigCustomVariable",
+            "args":"elf"
+        },
+        {
+            "id": "TargetSubDir",
+            "type": "command",
+            "command": "cpptools.activeConfigCustomVariable",
+            "args":"TargetSubDir"
+        }
+    ]
+}

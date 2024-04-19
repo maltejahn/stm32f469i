@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "USART_IRQ_OWN",
+            "customConfigurationVariables": {
+                "TargetSubDir": "eigen/usart_irq_own"
+            },
+            "includePath": [
+                "${workspaceFolder}/libopencm3/include"
+            ],
+            "defines": [
+                "STM32F4"
+            ],
+            "browse": {
+              "path": [
+                "${workspaceFolder}/eigen/usart_irq_own"
+              ]  
+            },
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerPath": "/usr/bin/clang-14",
+            "cStandard": "c17",
+            "cppStandard": "c++14"
+        }
+    ],
+    "version": 4
+}

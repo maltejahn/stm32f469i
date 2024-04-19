@@ -1,0 +1,98 @@
+{
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: arm-none-eabi-gcc build active file",
+			"command": "/usr/local/bin/arm-none-eabi-gcc",
+			"args": [
+				"-fdiagnostics-color=always",
+				"-g",
+				"${file}",
+				"-o",
+				"${fileDirname}/${fileBasenameNoExtension}"
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"detail": "compiler: /usr/local/bin/arm-none-eabi-gcc"
+		},
+		{
+			"label": "make (select)",
+			"type": "shell",
+			"options": {
+				"cwd": "${workspaceFolder}/${input:TargetSubDir}"
+			},
+			"command":"make",
+			"args": [
+				{
+					"value": "${input:selectMakeTarget}",
+					"quoting": "weak"
+				}
+			],
+			"group": "build",
+			"presentation": {
+				"group": "make",
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": false
+			}
+		},
+		{
+			"label": "make",
+			"type": "shell",
+			"options": {
+				"cwd": "${workspaceFolder}/${input:TargetSubDir}"
+			},
+			"command":"make",
+			"args": [
+				{
+					"value": "${input:makeTarget}",
+					"quoting": "weak"
+				}
+			],
+			"group": "build",
+			"presentation": {
+				"group": "make",
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": false
+			}
+		},
+		
+	],
+	"version":"2.0.0",
+	"inputs": [
+		{
+			"type":"pickString",
+			"id": "selectMakeTarget",
+			"description": "What target do you want to create",
+			"options": [
+				"all",
+				"flash",
+				"clean",
+			],
+			"default": "component"
+		},
+		{
+			"type": "promptString",
+			"id": "makeTarget",
+			"description": "Name your target",
+			"default": ""
+		},
+		{
+			"type": "command",
+			"id": "TargetSubDir",
+			"command":"cpptools.activeConfigCustomVariable",
+			"args": "TargetSubDir",
+			//"description": "directory needed",
+			//"default": "eigen/usart_irq_own"
+		}
+	]
+}
