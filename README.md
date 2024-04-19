@@ -1,5 +1,10 @@
 Trying to build a ESP32 powered WiFi Display with the STM32F469I-Disco Board based on ChuckM examples
 
+Aim:
+- porting to VSCode
+- Using USART to comunicate between ESP and STM
+- ESP should get its data from a MQTT Broker
+
 -- Original description
 
 
