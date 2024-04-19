@@ -1,3 +1,6 @@
+Trying to build a ESP32 powered WiFi Display with the STM32F469I-Disco Board based on ChuckM examples
+
+-- Original description
 STM32F469I-Discovery Code
 -------------------------
 
