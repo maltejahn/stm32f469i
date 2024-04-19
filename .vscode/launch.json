@@ -90,7 +90,8 @@
             "type": "cortex-debug",
             "servertype": "stlink",
             //"stlinkPath": "D:/CubeIDE/STM32CubeIDE_1.8.0/.../bin/ST-LINK_gdbserver.exe",
-            "stlinkPath":"c:/ST/STM32CubeIDE_1.7.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.stlink-gdb-server.win32_2.0.0.202105311346/tools/bin/ST-LINK_gdbserver.exe",
+            //"stlinkPath":"c:/ST/STM32CubeIDE_1.7.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.stlink-gdb-server.win32_2.0.0.202105311346/tools/bin/ST-LINK_gdbserver.exe",
+            "stlinkPath":"c:/devtools/st-link/ST-LINK_gdbserver.exe",
             //"stm32cubeprogrammer": "D:/CubeProgrammer/bin",
             "device": "STM32F469NI",
             "configFiles": [
