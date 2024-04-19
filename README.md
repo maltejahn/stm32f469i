@@ -3,6 +3,7 @@ Trying to build a ESP32 powered WiFi Display with the STM32F469I-Disco Board bas
 Aim:
 - porting to VSCode
 - Using USART to comunicate between ESP and STM
+- Getting USART6 in Interrupt mode to work -> main Problem till now
 - ESP should get its data from a MQTT Broker
 
 -- Original description
