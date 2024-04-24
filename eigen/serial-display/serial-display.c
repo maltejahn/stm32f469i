@@ -153,291 +153,10 @@ static const struct {
 };
 
 
-/*
- * Compute a "skew factor".
- * Compute a 'delta x' factor to add to the X coordinate
- * when transitioning delta Y pixels. 
- *
- * Slant goes from 0 at dy == h to SKEW_MAX when dy == 0
- */
-static int
-skew_factor(int dy, int h)
-{
-	int i;
-	/* dy is distance from the 'top' of the display box */
-	i =  ((SKEW_MAX * (h - dy)) / h);
-	return i;
-}
-
-/* gap question, is disp_height everything, including gaps? (same with display width?) */
-/* How about display pad, for the "socket" around the display? */
-/* How about the decimal point with respect to the digits? */
-// #define OUTLINE_DIGIT_BOX (broken)
-
-/*
- * Draw a graphic that looks like a 7 segment display
- * digit. 
- *
- * The reference point for the digit is the lower left corner
- * of the "display" so digits go up and to the right from that point.
- * Because Y is inverted in this display (larger Y means lower point)
- * Height is "negative" with respect to the starting point. (XXX look
- * this, can we make the graphics "sane" with respect to X and Y and
- * map it in the simple-graphics library appropriately?
- */
-void
-draw_digit(GFX_CTX *g, int x, int y, int d, GFX_COLOR color, GFX_COLOR outline) {
-	int i;
-	uint8_t seg_mask;
-	int	sx, sy, ndx, xf, yf;
-
-	seg_mask = seg_map[d % 10];
-
-	for (i = 0; i < 7; i++) {
-		/* test to see if segment is 'lit' for this number */
-		if ((seg_mask & (1 << i)) != 0) {
-			/* draw segment */
-			sx = x + segment_data[i].xo;
-			sy = y + segment_data[i].yo;
-			xf = segment_data[i].xf;
-			yf = segment_data[i].yf;
-			/* tesselate it */
-			for (ndx = 2; ndx < (segment_data[i].n_coords - 1) * 2; ndx += 2) {
-				/* move to segment reference point given X, Y, and Skew */
-				gfx_move(g, sx, sy);
-					
-				gfx_fill_triangle_abs(g,
-					skew_factor((sy + *(segment_data[i].segs + 1) * yf - y), DISP_HEIGHT) +
-							sx + *(segment_data[i].segs) * xf,
-					sy + *(segment_data[i].segs + 1) * yf,			/* #1 */
-
-					skew_factor((sy + *(segment_data[i].segs + ndx + 1) * yf - y), DISP_HEIGHT) +
-						sx	+ *(segment_data[i].segs + ndx) * xf,
-					sy + *(segment_data[i].segs + ndx + 1) * yf,	/* #2 */
-
-					skew_factor((sy + *(segment_data[i].segs + ndx + 3) * yf - y), DISP_HEIGHT) +
-					     sx + *(segment_data[i].segs + ndx + 2) * xf,
-					sy + *(segment_data[i].segs + ndx + 3) * yf,	/* #3 */
-							 color);
-			}
-			/* outline it */
-			for (ndx = 0; ndx < (segment_data[i].n_coords - 1) * 2; ndx += 2) {
-				gfx_draw_line_at(g,
-					skew_factor((sy + *(segment_data[i].segs + ndx + 1) * yf - y), DISP_HEIGHT) +
-						sx + *(segment_data[i].segs + ndx) * xf,
-					sy + *(segment_data[i].segs + ndx + 1) * yf,
-					skew_factor((sy + *(segment_data[i].segs + ndx + 3) * yf - y), DISP_HEIGHT) +
-								sx	+ *(segment_data[i].segs + ndx + 2) * xf,
-					sy + *(segment_data[i].segs + ndx + 3) * yf,
-								outline);
-			}
-			gfx_draw_line_at(g,
-				skew_factor((sy + *(segment_data[i].segs + 1) * yf - y), DISP_HEIGHT) +
-							sx + *(segment_data[i].segs + 0) * xf,
-				sy + *(segment_data[i].segs + 1) * yf,
-				skew_factor((sy + *(segment_data[i].segs + ndx + 1) * yf - y), DISP_HEIGHT) +
-							sx + *(segment_data[i].segs + ndx) * xf,
-				sy + *(segment_data[i].segs + ndx + 1) * yf,
-							outline);
-		} else {
-			/* draw 'off' segment? */
-#ifdef DRAW_DARK_SEGMENT
-			/* draw segment */
-			sx = x + segment_data[i].xo;
-			sy = y + segment_data[i].yo;
-			xf = segment_data[i].xf;
-			yf = segment_data[i].yf;
-			/* tesselate it */
-			for (ndx = 2; ndx < (segment_data[i].n_coords - 1) * 2; ndx += 2) {
-				gfx_fill_triangle_abs(g,
-					skew_factor((sy + *(segment_data[i].segs + 1) * yf - y), DISP_HEIGHT) +
-							sx + *(segment_data[i].segs) * xf,
-					sy + *(segment_data[i].segs + 1) * yf,			/* #1 */
-					skew_factor((sy + *(segment_data[i].segs + ndx + 1) * yf - y), DISP_HEIGHT) +
-						sx	+ *(segment_data[i].segs + ndx) * xf,
-					sy + *(segment_data[i].segs + ndx + 1) * yf,	/* #2 */
-					skew_factor((sy + *(segment_data[i].segs + ndx + 3) * yf - y), DISP_HEIGHT) +
-					     sx + *(segment_data[i].segs + ndx + 2) * xf,
-					sy + *(segment_data[i].segs + ndx + 3) * yf,	/* #3 */
-							(uint16_t) (6 << 11 | 6 << 5 | 6)
-							 );
-			}
-			/* outline it */
-			for (ndx = 0; ndx < (segment_data[i].n_coords - 1) * 2; ndx += 2) {
-				gfx_draw_line_abs(g,
-					skew_factor((sy + *(segment_data[i].segs + ndx + 1) * yf - y), DISP_HEIGHT) +
-						sx + *(segment_data[i].segs + ndx) * xf,
-					sy + *(segment_data[i].segs + ndx + 1) * yf,
-					skew_factor((sy + *(segment_data[i].segs + ndx + 3) * yf - y), DISP_HEIGHT) +
-								sx	+ *(segment_data[i].segs + ndx + 2) * xf,
-					sy + *(segment_data[i].segs + ndx + 3) * yf,
-							outline);
-			}
-			gfx_draw_line_abs(g,
-				skew_factor((sy + *(segment_data[i].segs + 1) * yf - y), DISP_HEIGHT) +
-							sx + *(segment_data[i].segs + 0) * xf,
-				sy + *(segment_data[i].segs + 1) * yf,
-				skew_factor((sy + *(segment_data[i].segs + ndx + 1) * yf - y), DISP_HEIGHT) +
-							sx + *(segment_data[i].segs + ndx) * xf,
-				sy + *(segment_data[i].segs + ndx + 1) * yf,
-							outline);
-#endif
-		}
-	}
-}
-
-/* Colon spread as a percentage of display height */
-#define COLON_SPREAD (DISP_HEIGHT * 15 / 100)
-
-/*
- * For 'clock' type displays they have a colon between
- * the Hours, minutes, and seconds. This is our LED
- * colon (:) character.
- *
- * Started putting the 'dots' at 25% and 75% of display
- * height, and switched to equidistant from the display
- * vertical mid-point.
- */
-void
-draw_colon(GFX_CTX *g, int x, int y, GFX_COLOR color, GFX_COLOR outline)
-{
-	gfx_fill_circle_at(g,
-		skew_factor(DISP_HEIGHT / 2 - COLON_SPREAD, DISP_HEIGHT) + x + SEG_THICK/2,
-		y + (DISP_HEIGHT / 2 - COLON_SPREAD) - SEG_THICK/2, SEG_THICK/2, color);
-	gfx_draw_circle_at(g,
-		skew_factor(DISP_HEIGHT / 2 - COLON_SPREAD, DISP_HEIGHT) + x + SEG_THICK/2,
-		y + (DISP_HEIGHT / 2 - COLON_SPREAD) - SEG_THICK/2, SEG_THICK/2, outline);
-	gfx_fill_circle_at(g,
-		skew_factor(DISP_HEIGHT / 2 + COLON_SPREAD, DISP_HEIGHT) + x + SEG_THICK/2,
-		y + (DISP_HEIGHT / 2 + COLON_SPREAD) + SEG_THICK/2, SEG_THICK/2, color);
-	gfx_draw_circle_at(g,
-		skew_factor(DISP_HEIGHT / 2 + COLON_SPREAD, DISP_HEIGHT) + x + SEG_THICK/2,
-		y + (DISP_HEIGHT / 2 + COLON_SPREAD) + SEG_THICK/2, SEG_THICK/2, outline);
-}
-
-/*
- * For displays with a decimal point, draw the decimal point
- */
-void
-draw_dp(GFX_CTX *g, int x, int y, GFX_COLOR color, GFX_COLOR outline)
-{
-	gfx_fill_circle_at(g,
-		skew_factor(DISP_HEIGHT - (SEG_THICK/2), DISP_HEIGHT) + x + SEG_THICK/2,
-		y + DISP_HEIGHT - SEG_THICK/2, SEG_THICK/2, color);
-	gfx_draw_circle_at(g,
-		skew_factor(DISP_HEIGHT - (SEG_THICK/2), DISP_HEIGHT) + x + SEG_THICK/2,
-		y + DISP_HEIGHT - SEG_THICK/2, SEG_THICK/2, outline);
-}
 
 
-void
-display_clock(GFX_CTX *g, int x, int y, uint32_t tm)
-{
-	int hh, mm, ss, ms;
 
-	hh = (int) tm / 3600000;
-	mm = (int) (tm % 3600000) / 60000;
-	ss = (int) (tm % 60000) / 1000;
-	ms = (int) tm % 1000;
-	draw_digit(g, x, y, hh / 10, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	draw_digit(g, x, y, hh % 10, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	draw_colon(g, x, y, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += SEG_THICK + SEG_THICK/2;;
-	draw_digit(g, x, y, mm / 10, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	draw_digit(g, x, y, mm % 10, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	draw_colon(g, x, y, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += SEG_THICK + SEG_THICK/2;;
-	draw_digit(g, x, y, ss / 10, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	draw_digit(g, x, y, ss % 10, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	draw_dp(g, x, y, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += SEG_THICK + SEG_THICK/2;
-	draw_digit(g, x, y, ms / 100, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	draw_digit(g, x, y, ms / 10, GFX_COLOR_RED, GFX_COLOR_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	draw_digit(g, x, y, ms, GFX_COLOR_RED, GFX_COLOR_BLACK);
-}
 
-#define SHADOW 0x80000000
-#define DMA2D_RED	0xffff0000
-#define DMA2D_BLACK	0xff000000
-
-void
-dma2d_clock(int x, int y, uint32_t tm, int ds)
-{
-	int hh, mm, ss, ms;
-
-	hh = ((int) tm / 3600000) % 24;
-	mm = (int) (tm % 3600000) / 60000;
-	ss = (int) (tm % 60000) / 1000;
-	ms = (int) tm % 1000;
-
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, hh / 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, hh / 10, DMA2D_RED, DMA2D_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, hh % 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, hh % 10, DMA2D_RED, DMA2D_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, 10, DMA2D_RED, DMA2D_BLACK);
-	x += SEG_THICK + SEG_THICK/2;;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, mm / 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, mm / 10, DMA2D_RED, DMA2D_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, mm % 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, mm % 10, DMA2D_RED, DMA2D_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, 10, DMA2D_RED, DMA2D_BLACK);
-	x += SEG_THICK + SEG_THICK/2;;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, ss / 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, ss / 10, DMA2D_RED, DMA2D_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, ss % 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, ss % 10, DMA2D_RED, DMA2D_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, 11, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, 11, DMA2D_RED, DMA2D_BLACK);
-	x += SEG_THICK + SEG_THICK/2;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, (ms / 100) % 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, (ms / 100) % 10, DMA2D_RED, DMA2D_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, (ms / 10) % 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, (ms / 10) % 10, DMA2D_RED, DMA2D_BLACK);
-	x += DISP_WIDTH + SEG_THICK/2;
-	if (ds) {
-		dma2d_digit(x + 10, y + 10, ms % 10, SHADOW, SHADOW);
-	}
-	dma2d_digit(x, y, ms % 10, DMA2D_RED, DMA2D_BLACK);
-}
 
 /* another frame buffer 2MB "before" the standard one */
 #define BACKGROUND_FB (FRAMEBUFFER_ADDRESS - 0x200000U)
@@ -614,93 +333,8 @@ digit_draw_pixel(void *fb, int x, int y, GFX_COLOR color)
 }
 
 
-/*
- * This then will render a digit to the console, its good for
- * debugging.
- */
-void
-print_digit(int n) {
-	uint8_t *row;
-	int tx, ty;
-	struct digit_fb *digit = &digits[n];
 
-	printf("Digit FB size (W, H) = (%d, %d)\n", digit->w, digit->h);
-	row = digit->data;
-	for (ty = 0; ty < digit->h; ty++) {
-		printf("%3d :", ty);
-		for (tx = 0; tx < digit->w; tx++) {
-			switch (*row) {
-			case 0:
-				console_putc(' ');
-				break;
-			case 1:
-				console_putc('*');
-				break;
-			case 2:
-				console_putc('.');
-				break;
-			default:
-				console_putc('X');
-				break;
-			}
-			row++;
-		}
-		printf("\n");
-	}
-	/* END DEBUG CODE */
-}
 
-#define DIGIT_OUTLINE_COLOR	(GFX_COLOR){.raw=2}
-#define DIGIT_BODY_COLOR	(GFX_COLOR){.raw=1}
-
-/*
- * And this is where we will generate our digits
- * when we copy them with the DMA2D device we can
- * use the color lookup table to set the values.
- * in this case we'll use 0, 1, and 2 for background
- * foreground, and outline color.
- *
- * While the digits are kerned in the display they are
- * drawn here with a box that is DISP_WIDTH + SKEW_MAX
- * pixels wide, but DISP_HEIGHT pixels high.
- */
-void
-generate_digits(void)
-{
-	GFX_CTX	local_gfx;
-	GFX_CTX	*g;
-	int w, h;
-	int i;
-
-	w = DISP_WIDTH + SKEW_MAX;
-	h = DISP_HEIGHT;
-	for (i = 0; i < 10; i++) {
-		digits[i].w = w;
-		digits[i].h = h;
-		digits[i].data = calloc(w * h, sizeof(uint8_t));
-		printf("Digit %d @0x%0X\n", i, (unsigned int)(digits[i].data));
-		g = gfx_init(&local_gfx, digit_draw_pixel, w, h,
-					   GFX_FONT_LARGE, (void *)&digits[i]);
-		draw_digit(g, 0, 0, i, DIGIT_BODY_COLOR, DIGIT_OUTLINE_COLOR);
-	}
-	/* colon */
-	w = SEG_THICK + SKEW_MAX;
-	h = DISP_HEIGHT;
-	digits[10].data = calloc(w * h, sizeof(uint8_t));
-	digits[10].w = w;
-	digits[10].h = h;
-	g = gfx_init(&local_gfx, digit_draw_pixel, w, h,
-						GFX_FONT_LARGE, (void *)&digits[10]);
-	draw_colon(g, 0, 0, DIGIT_BODY_COLOR, DIGIT_OUTLINE_COLOR);
-
-	/* decimal */
-	digits[11].w = w;
-	digits[11].h = h;
-	digits[11].data = calloc(w * h, sizeof(uint8_t));
-	g = gfx_init(&local_gfx, digit_draw_pixel, w, h,
-						GFX_FONT_LARGE, (void *)&digits[11]);
-	draw_dp(g, 0, 0, DIGIT_BODY_COLOR, DIGIT_OUTLINE_COLOR);
-}
 
 /*
  * This then uses the DMA2D peripheral to copy a digit from the
@@ -812,16 +446,7 @@ dma2d_digit(int x, int y, int d, uint32_t color, uint32_t outline)
 	}
 }
 
-const char *demo_options[] = {
-	 "Manual Clearing",
-	 "Tight loop Clearing",
-	 "DMA2D One color clear",
-	 "DMA2D Background copy clear",
-	 "DMA2D Background pattern with digits",
-	 "DMA2D Background pattern with drop shadowed digits",
-	 "Extra string",
-	 "Extra string"
-};
+
 
 #define N_FRAMES	10
 uint32_t frame_times[N_FRAMES] = {
@@ -929,8 +554,7 @@ main(void) {
 	printf("Generate background\n");
 	generate_background();
 	printf("Generate digits\n");
-	generate_digits();
-
+	
 	g = gfx_init(&local_context, draw_pixel, 800, 480, GFX_FONT_LARGE, 
 						(void *)FRAMEBUFFER_ADDRESS);
 	opt = 4; /* screen clearing mode */
@@ -948,81 +572,12 @@ main(void) {
 
 		//usart_send(5,0x34);
 		//console_puts("bla");
-		switch (opt) {
-		default:
-		case 0:
-			/* very slow way to clear the screen */
-			scr_opt = "manual clear";
-			gfx_fill_screen(g, GFX_COLOR_WHITE);
-			break;
-		case 1:
-			/* faster, using a tight loop */
-			scr_opt = "dedicated loop";
-			lcd_clear(0xff7f7f);
-			break;
-		case 2:
-			/* fastest? Using DMA2D to fill screen */
-			scr_opt = "DMA 2D Fill";
-			dma2d_fill(0xf8ecc2);
-			break;
-		case 3:
-			/* still fast, using DMA2D to pre-populate BG */
-			scr_opt = "DMA 2D Background";
-			dma2d_bgfill();
-			break;
-		case 4:
-			/* Now render all of the digits with DMA2D */
-			scr_opt = "DMA 2D Digits";
-			ds = 0;
-			dma2d_bgfill();
-			break;
-		case 5:
-			/* still fast, using DMA2D to render drop shadows */
-			scr_opt = "DMA 2D Shadowed Digits";
-			ds = 1;
-			dma2d_bgfill();
-			break;
-		}
-
-		/* This little state machine implements an automatic switch
-		 * every 10 seconds unless you've disabled it with the 'd'
-		 * command.
-		 */
-		if (((t0 / 1000) % 10 == 0) && (can_switch > 0)) {
-			opt = (opt + 1) % MAX_OPTS;
-			can_switch = 0;
-		} else  if (((t0 / 1000) % 10 != 0) && (can_switch == 0)) {
-			can_switch = 1;
-		}
-		te = get_touch(0);
-		if (te != NULL) {
-			if (te->tp[0].evt) {
-				opt = (opt + 1) % MAX_OPTS;
-			}
-		}
 
 
-		/*
-		 * The first four options (0, 1, 2, 3) all render the digits
-		 * in software every time, options 4 and 5 use the DMA2
-		 * device to render the digits
-		 */
-		if (opt < 4) {
-			display_clock(g, 25, 20, mtime());
-		} else {
-			dma2d_clock(25, 20, mtime(), ds);
-		}
-		for (i = 0; i < 10; i++) {
-			if (opt < 4) {
-				draw_digit(g, 25 + i * (DISP_WIDTH + 8), 350, i,
-											GFX_COLOR_GREEN, GFX_COLOR_BLACK);
-			} else {
-				if (ds) {
-					dma2d_digit(35 + i * (DISP_WIDTH + 8), 360, i, SHADOW, SHADOW);
-				}
-				dma2d_digit(25 + i * (DISP_WIDTH + 8), 350, i, 0xff40c040, 0xff000000);
-			}
-		}
+dma2d_bgfill();
+
+
+
 
 		/* In both cases we write the notes using the graphics library */
 		gfx_set_text_color(g, GFX_COLOR_BLACK, GFX_COLOR_BLACK);
@@ -1040,16 +595,13 @@ main(void) {
 		}
 		avg_frame = avg_frame / (float) N_FRAMES;
 		snprintf(buf, 35, "FPS: %6.2f", 1000.0 / avg_frame);
-		gfx_set_text_cursor(g, 25, 55 + DISP_HEIGHT + 2 * ((gfx_get_text_height(g) * 3) + 2));
+				gfx_set_text_cursor(g, 25, 55 + DISP_HEIGHT + 2 * ((gfx_get_text_height(g) * 3) + 2));
 		gfx_puts(g, (char *)buf);
+
 		gfx_set_text_cursor(g, 25, 55 + DISP_HEIGHT + 3 * ((gfx_get_text_height(g) * 3) + 2));
 		gfx_puts(g, "TEST: ");
-		gfx_puts(g, scr_opt);
-		gfx_puts(g, " ");
-		gfx_set_text_cursor(g, 25, 55 + DISP_HEIGHT + 4 * ((gfx_get_text_height(g) * 3) + 2));
-		gfx_puts(g, "NEU: ");
-		snprintf(mybuf, 35, "Bla: %d", opt);
-		gfx_puts(g, (char *)mybuf);
+
+
 		lcd_flip(te_lock);
 		if (opt == 2) {
 			/* XXX doesn't display clock data if we don't pause here */
@@ -1060,33 +612,7 @@ main(void) {
 		 * typed at the console. There are a few options you can select.
 		 */
 		
-		i = console_getc(0);
-		switch (i) {
-		case 's':
-			opt = (opt + 1) % MAX_OPTS;
-			printf("Switched to : %s\n", demo_options[opt]);
-			break;
-		case 'd':
-			can_switch = -1;
-			printf("Auto switching disabled\n");
-			break;
-		case 'e':
-			can_switch = 0;
-			printf("Auto switching enabled\n");
-			break;
-		case 't':
-			te_lock = (te_lock == 0);
-			printf("We are %s for the TE bit to be set\n", (te_lock) ? "WAITING" : "NOT WAITING");
-			break;
-		default:
-			printf("Options:\n");
-			printf("\ts - switch demo mode\n");
-			printf("\td - disable auto-switching of demo mode\n");
-			printf("\te - enable auto-switching of demo mode\n");
-			printf("\tt - enable/disable Tearing effect lock wait\n");
-		case 0:
-			break;
-		}
+
 		t0 = t1;
 	}
 }
