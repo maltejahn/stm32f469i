@@ -24,6 +24,13 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/cm3/nvic.h>
 
+#include <string.h>
+
+void console_puts(char *s);
+void console_putc(char c);
+void interpret_command(void);
+char uart_rx_buffer[128];
+uint8_t rx_position=0;
 
 //#define UART_PORTG
 #define UART_PORTC
@@ -99,12 +106,54 @@ int main(void)
 	clock_setup();
 	gpio_setup();
 	usart_setup();
+	console_puts("Hallo");
 
 	while (1) {
 		__asm__("NOP");
 	}
 
 	return 0;
+}
+void interpret_command(void){
+
+if(strcmp(uart_rx_buffer,"test")==0)
+{
+	console_puts("test ok");
+}
+	
+
+
+for(uint8_t i=0; i<=rx_position; i++){
+		uint32_t reg;
+		do{
+			reg=USART_SR(USART6);
+		}while((reg & USART_SR_TXE)==0);
+		USART_DR(USART6) = (uint16_t) uart_rx_buffer[i] & 0xff;
+}
+		rx_position=0;
+
+
+}
+
+void console_putc(char c)
+{
+	uint32_t	reg;
+	do {
+		reg = USART_SR(USART6);
+	} while ((reg & USART_SR_TXE) == 0);
+	USART_DR(USART6) = (uint16_t) c & 0xff;
+}
+
+void console_puts(char *s)
+{
+	while (*s != '\000') {
+		console_putc(*s);
+		/* Add in a carraige return, after sending line feed */
+		if (*s == '\n') {
+			console_putc('\r');
+		}
+		s++;
+	}
 }
 
 void usart6_isr(void)
@@ -120,19 +169,28 @@ void usart6_isr(void)
 
 		/* Retrieve the data from the peripheral. */
 		data = usart_recv(USART6);
+		if(data!=0x0D)uart_rx_buffer[rx_position++]=data;
+		if(data ==0x0D)
+		{
+			interpret_command();
+			//usart_enable_tx_interrupt(USART6);
+		}
 
 		/* Enable transmit interrupt so it sends back the data. */
-		usart_enable_tx_interrupt(USART6);
+		//usart_enable_tx_interrupt(USART6);
 	}
-
-	/* Check if we were called because of TXE. */
+/*
+	// Check if we were called because of TXE. 
 	if (((USART_CR1(USART6) & USART_CR1_TXEIE) != 0) &&
 	    ((USART_SR(USART6) & USART_SR_TXE) != 0)) {
 
-		/* Put data into the transmit register. */
-		usart_send(USART6, data+0x01);
 
-		/* Disable the TXE interrupt as we don't need it anymore. */
+		// Put data into the transmit register. 
+			//usart_send(USART6, data+0x01);
+
+
+		// Disable the TXE interrupt as we don't need it anymore. 
 		usart_disable_tx_interrupt(USART6);
-	}
+
+	}*/
 }
