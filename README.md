@@ -10,6 +10,9 @@ Aim:
 
 -> Changing libopencm3 to a more recent version
 
+Initialize submodules after git clone
+git submodule update --init --recursive
+
 
 STM32F469I-Discovery Code
 -------------------------
