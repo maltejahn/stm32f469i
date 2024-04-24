@@ -24,6 +24,10 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/cm3/nvic.h>
 
+
+//#define UART_PORTG
+#define UART_PORTC
+
 static void clock_setup(void)
 {
 	/* Enable GPIOG clock for LED & USARTs. */
@@ -41,7 +45,7 @@ static void usart_setup(void)
 	nvic_enable_irq(NVIC_USART6_IRQ);
 
 // Settings for PC6+7
-/*
+#ifdef UART_PORTC
 	// Setup GPIO pins for USART3 transmit. 
 	gpio_mode_setup(GPIOC, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6);
 
@@ -50,10 +54,11 @@ static void usart_setup(void)
 	gpio_set_output_options(GPIOC, GPIO_OTYPE_OD, GPIO_OSPEED_25MHZ, GPIO7);
 
 	// Setup USART3 TX and RX pin as alternate function. 
-	gpio_set_af(GPIOC, GPIO_AF7, GPIO6);
-	gpio_set_af(GPIOC, GPIO_AF7, GPIO7);
-*/
+	gpio_set_af(GPIOC, GPIO_AF8, GPIO6);
+	gpio_set_af(GPIOC, GPIO_AF8, GPIO7);
+#endif
 
+#ifdef UART_PORTG
 // Settings for PG14(TX, AF8,D1) and PG9(RX, AF8, D0)
 	// Setup GPIO pins for USART3 transmit. 
 	gpio_mode_setup(GPIOG, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO14);
@@ -65,6 +70,8 @@ static void usart_setup(void)
 	// Setup USART3 TX and RX pin as alternate function. 
 	gpio_set_af(GPIOG, GPIO_AF8, GPIO14);
 	gpio_set_af(GPIOG, GPIO_AF8, GPIO9);
+#endif
+
 
 	/* Setup USART3 parameters. */
 	usart_set_baudrate(USART6, 57600);
