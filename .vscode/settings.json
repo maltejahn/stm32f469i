@@ -1,5 +1,9 @@
 {
     "files.associations": {
-        "rcc.h": "c"
+        "rcc.h": "c",
+        "gfx.h": "c",
+        "util.h": "c",
+        "helpers.h": "c",
+        "bild.h": "c"
     }
 }

@@ -18,6 +18,25 @@
 #include <libopencm3/stm32/gpio.h>
 #include <gfx.h>
 #include <malloc.h>
+
+#include "main.h"
+
+//--------------------------------------------------------------
+// Struktur von einem Image
+//--------------------------------------------------------------
+typedef struct picture_t
+{
+  const uint16_t *table; // Tabelle mit den Daten
+  uint16_t width;        // Breite des Bildes (in Pixel)
+  uint16_t height;       // Hoehe des Bildes  (in Pixel)
+  uint8_t colorspace;
+}picture;
+
+// include picture files
+#include "Emo2_Image.h"
+#include "Emo1_VGA_Image.h"
+#include "bild.h"
+#include "sky.h"
 extern char _ebss, _stack;
 
 
@@ -29,19 +48,127 @@ uint32_t usart_table[6] = {
 	UART5,
 	USART6,
 };
+#define NO_ROTATE		0
+#define ROTATE_CW		1
+#define ROTATE_CCW		2
+#define FLIP_HORIZONTAL 3
+#define FLIP_VERTICAL	4
+
+struct rgb_color{
+		uint8_t	* r;
+		uint8_t	* g;
+		uint8_t	* b;
+
+	} ;
+
 
 
 #include "../../demos/util/util.h"
 #include "../../demos/util/helpers.h"
 
-void draw_digit(GFX_CTX *g, int x, int y, int d, GFX_COLOR color, GFX_COLOR outline);
-void draw_colon(GFX_CTX *g, int x, int y, GFX_COLOR color, GFX_COLOR outline);
-void draw_dp(GFX_CTX *g, int x, int y, GFX_COLOR color, GFX_COLOR outline);
 void dma2d_digit(int x, int y, int d, uint32_t color, uint32_t outline);
-void display_clock(GFX_CTX *g, int x, int y, uint32_t tm);
-void dma2d_clock(int x, int y, uint32_t tm, int ds);
+
 void generate_background(void);
-void generate_digits(void);
+
+void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rotate,uint8_t invert_color);
+void CopyImg_RGB332(GFX_CTX *g,picture *img, uint16_t x, uint16_t y);
+
+
+struct rgb_color convert_colorspace(uint32_t c, uint8_t colorspace){
+	static struct rgb_color colors;
+	
+	if(colorspace == RGB565){
+	colors.r=((c )>>11)<<3;
+	colors.g=((c & 0x7E0)>>5)<<2;
+	colors.b=((c &0x1F))<<3;
+	}
+	else if (colorspace ==RGB332){
+		colors.r=((c )>>5)<<5;
+		colors.g=((c & 0x1C)>>2)<<5;
+		colors.b=((c &0x03))<<6;
+	}
+	else if(colorspace==RGB888){
+
+	}
+
+	return colors;
+
+}
+
+void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rotate,uint8_t invert_color){
+
+
+  uint32_t pixel_color;
+  uint8_t red, green, blue;
+const uint16_t *value;
+  value=&img->table[0];
+  static struct rgb_color conv_colors;
+  
+
+  uint32_t xn, yn;
+
+if(rotate==NO_ROTATE){
+  for(yn=0; yn <= img->height;yn++){
+	for(xn=0; xn <= img->width;xn++){
+		pixel_color=value[yn*img->width+xn];
+		conv_colors=convert_colorspace(pixel_color,RGB565);
+		if(invert_color==1)conv_colors.r=1 - *conv_colors.r;
+		//gfx_draw_point_at(g, x+xn, y+yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
+		if(pixel_color!=0x00 )gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {conv_colors.b,conv_colors.g,conv_colors.r,0xFF}});
+		if(pixel_color==0x00 && invert_color==1)gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {0,0,0xFF,0xFF}});
+		//(GFX_COLOR){.c = {blu, grn, red, 0xff}
+
+	}
+  }
+}
+
+
+if(rotate==ROTATE_CCW){
+  for(xn=0; xn <= img->height;xn++){
+	for(yn=0; yn <= img->width;yn++){
+		pixel_color=value[xn*img->width+yn];
+		conv_colors=convert_colorspace(pixel_color,RGB565);
+		gfx_draw_point_at(g, x+xn, y+yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
+	}
+  }
+}
+if(rotate==ROTATE_CW){
+  for(xn=0; xn <= img->height;xn++){
+	for(yn=0; yn <= img->width;yn++){
+		pixel_color=value[xn*img->width+yn];
+		conv_colors=convert_colorspace(pixel_color,RGB565);
+		gfx_draw_point_at(g, x+xn, y-yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
+
+	}
+  }
+}
+
+
+
+}
+
+void CopyImg_RGB332(GFX_CTX *g,picture *img, uint16_t x, uint16_t y){
+
+
+  uint32_t pixel_color;
+  uint8_t red, green, blue;
+  const uint8_t *value;
+  value=&img->table[0];
+  uint32_t xn, yn;
+  static struct rgb_color conv_colors;
+
+
+    for(yn=0; yn <= img->height;yn++){
+	for(xn=0; xn <= img->width;xn++){
+		pixel_color=value[yn*img->width+xn];
+		conv_colors=convert_colorspace(pixel_color,RGB332);
+		gfx_draw_point_at(g, x+xn, y+yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
+
+	}
+  }
+
+
+}
 
 /*
  * relocate the heap to the DRAM, 10MB at 0xC0000000
@@ -198,13 +325,13 @@ generate_background(void)
 
 	g = gfx_init(&local_ctx, bg_draw_pixel, 800, 480, GFX_FONT_LARGE, (void *) BACKGROUND_FB);
 	for (i = 0, t = (uint32_t *)(BACKGROUND_FB); i < 800 * 480; i++, t++) {
-		*t = 0xffffffff; /* clear to white */
+		*t = 0xffffffff; // clear to white 
 	}
-	/* draw a grid */
-	t = (uint32_t *) BACKGROUND_FB;
+	// draw a grid 
+/*	t = (uint32_t *) BACKGROUND_FB;
 	for (y = 1; y < 480; y++) {
 		for (x = 1; x < 800; x++) {
-			/* major grid line */
+			// major grid line 
 			if ((x % 50) == 0) {
 				gfx_draw_point_at(g, x-1, y, DARK_GRID);
 				gfx_draw_point_at(g, x, y, DARK_GRID);
@@ -221,6 +348,13 @@ generate_background(void)
 	gfx_draw_rounded_rectangle_at(g, 0, 0, 800, 480, 15, DARK_GRID);
 	gfx_draw_rounded_rectangle_at(g, 1, 1, 798, 478, 15, DARK_GRID);
 	gfx_draw_rounded_rectangle_at(g, 2, 2, 796, 476, 15, DARK_GRID);
+	*/
+
+	gfx_draw_rounded_rectangle_at(g, 0, 400, 800, 80, 15, GFX_COLOR_RED);
+	gfx_draw_rounded_rectangle_at(g, 1, 401, 798, 78, 15, GFX_COLOR_RED);
+	gfx_draw_rounded_rectangle_at(g, 2, 402, 796, 76, 15, GFX_COLOR_RED);
+	gfx_draw_rounded_rectangle_at(g, 3, 403, 794, 74, 15, GFX_COLOR_RED);
+	gfx_draw_rounded_rectangle_at(g, 4, 404, 792, 72, 15, GFX_COLOR_RED);
 }
 
 /* Digits zero through 9, : and . */
@@ -451,7 +585,9 @@ main(void) {
 	float avg_frame;
 	int	can_switch;
 	int	opt, ds;
+	uint16_t touch_x, touch_y;
 	touch_event *te;
+	uint8_t invert;
 
 	GFX_CTX local_context;
 	GFX_CTX *g;
@@ -462,7 +598,8 @@ main(void) {
 	gpio_led_setup();
 
 	/* Enable the clock to the DMA2D device */
-	
+
+
 	
 	fprintf(stderr, "DMA2D Demo program : Digits Gone Wild\n");
 
@@ -479,6 +616,7 @@ main(void) {
 	
 
 	
+	
 	while (1) {
 		//usart_send(USART6, 0x33);
 		//gpio_toggle(GPIOG, GPIO6);
@@ -491,6 +629,18 @@ main(void) {
 
 dma2d_bgfill();
 
+		te=get_touch(0);
+		if(te != NULL){
+			touch_x=te->tp[0].x;
+			touch_y=te->tp[0].y;
+			if(touch_x>50 && touch_x<200 && touch_y >400 && touch_y<480) {
+				invert=1;
+
+			}
+			else{
+				invert=0;
+			}
+		}
 
 
 
@@ -498,7 +648,15 @@ dma2d_bgfill();
 		gfx_set_text_color(g, GFX_COLOR_BLACK, GFX_COLOR_BLACK);
 		gfx_set_text_size(g, 3);
 		gfx_set_text_cursor(g, 25, 55 + DISP_HEIGHT + ((gfx_get_text_height(g) * 3) + 2));
-		gfx_puts(g, (char *)"Hello world Nils Supa Display DMA2D!");
+		gfx_puts(g, (char *)"Hello world Supa Display DMA2D!");
+
+
+		//CopyImg_RGB565(g,&Emo2_Image,300,250,ROTATE_CCW);
+		//CopyImg_RGB565(g,&Emo2_Image,200,250,ROTATE_CW);
+		//CopyImg_RGB565(g,&Emo2_Image,50,250,NO_ROTATE);
+		//CopyImg_RGB565(g,&bild_Image,350,10,ROTATE_CW);
+		//CopyImg_RGB332(g,&Emo1_VGA_Image,300,50);
+		CopyImg_RGB565(g,&sky_Image,50,50,NO_ROTATE, invert);
 		t1 = mtime();
 
 		/* this computes a running average of the last 10 frames */
@@ -515,6 +673,10 @@ dma2d_bgfill();
 
 		gfx_set_text_cursor(g, 25, 55 + DISP_HEIGHT + 3 * ((gfx_get_text_height(g) * 3) + 2));
 		gfx_puts(g, "TEST: ");
+		snprintf(buf, 35, "x %3d", touch_x);
+		gfx_puts(g, (char *)buf);
+		snprintf(buf, 35, "y %3d", touch_y);
+		gfx_puts(g, (char *)buf);
 
 
 		lcd_flip(te_lock);
