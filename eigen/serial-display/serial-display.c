@@ -67,7 +67,7 @@ local_heap_setup(uint8_t **start, uint8_t **end)
 #define DISP_HEIGHT 100
 #define DISP_WIDTH (DISP_HEIGHT / 2)
 
-void _close_r(void);
+
 
 
 

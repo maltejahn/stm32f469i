@@ -109,8 +109,6 @@
 			"id": "TargetSubDir",
 			"command":"cpptools.activeConfigCustomVariable",
 			"args": "TargetSubDir",
-			//"description": "directory needed",
-			//"default": "eigen/usart_irq_own"
 		}
 	]
 }

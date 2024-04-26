@@ -42,21 +42,21 @@ static void clock_setup(void)
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_GPIOC);
 
-	/* Enable clocks for USART1. */
+	/* Enable clocks for USART6. */
 	rcc_periph_clock_enable(RCC_USART6);
 }
 
 static void usart_setup(void)
 {
-	/* Enable the USART1 interrupt. */
+	/* Enable the USART6 interrupt. */
 	nvic_enable_irq(NVIC_USART6_IRQ);
 
 // Settings for PC6+7
 #ifdef UART_PORTC
-	// Setup GPIO pins for USART3 transmit. 
+	// Setup GPIO pins for USART6 transmit. 
 	gpio_mode_setup(GPIOC, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6);
 
-	// Setup GPIO pins for USART3 receive. 
+	// Setup GPIO pins for USART6 receive. 
 	gpio_mode_setup(GPIOC, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO7);
 	gpio_set_output_options(GPIOC, GPIO_OTYPE_OD, GPIO_OSPEED_25MHZ, GPIO7);
 
@@ -67,10 +67,10 @@ static void usart_setup(void)
 
 #ifdef UART_PORTG
 // Settings for PG14(TX, AF8,D1) and PG9(RX, AF8, D0)
-	// Setup GPIO pins for USART3 transmit. 
+	// Setup GPIO pins for USART6 transmit. 
 	gpio_mode_setup(GPIOG, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO14);
 
-	// Setup GPIO pins for USART3 receive. 
+	// Setup GPIO pins for USART6 receive. 
 	gpio_mode_setup(GPIOG, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9);
 	gpio_set_output_options(GPIOG, GPIO_OTYPE_OD, GPIO_OSPEED_25MHZ, GPIO9);
 
@@ -80,7 +80,7 @@ static void usart_setup(void)
 #endif
 
 
-	/* Setup USART3 parameters. */
+	/* Setup USART6 parameters. */
 	usart_set_baudrate(USART6, 57600);
 	usart_set_databits(USART6, 8);
 	usart_set_stopbits(USART6, USART_STOPBITS_1);
@@ -88,7 +88,7 @@ static void usart_setup(void)
 	usart_set_parity(USART6, USART_PARITY_NONE);
 	usart_set_flow_control(USART6, USART_FLOWCONTROL_NONE);
 
-	/* Enable USART1 Receive interrupt. */
+	/* Enable USART6 Receive interrupt. */
 	usart_enable_rx_interrupt(USART6);
 
 	/* Finally enable the USART. */
@@ -106,7 +106,7 @@ int main(void)
 	clock_setup();
 	gpio_setup();
 	usart_setup();
-	console_puts("Hallo");
+	console_puts("Hi there");
 
 	while (1) {
 		__asm__("NOP");
@@ -114,15 +114,20 @@ int main(void)
 
 	return 0;
 }
+
+// just compare what was received after a 
 void interpret_command(void){
 
 if(strcmp(uart_rx_buffer,"test")==0)
 {
 	console_puts("test ok");
 }
+else{
+	console_puts("unknown command");
+}
 	
 
-
+/*
 for(uint8_t i=0; i<=rx_position; i++){
 		uint32_t reg;
 		do{
@@ -130,11 +135,13 @@ for(uint8_t i=0; i<=rx_position; i++){
 		}while((reg & USART_SR_TXE)==0);
 		USART_DR(USART6) = (uint16_t) uart_rx_buffer[i] & 0xff;
 }
-		rx_position=0;
+*/
+
+rx_position=0;
 
 
 }
-
+// just put a char to the console
 void console_putc(char c)
 {
 	uint32_t	reg;
@@ -144,6 +151,7 @@ void console_putc(char c)
 	USART_DR(USART6) = (uint16_t) c & 0xff;
 }
 
+// put a string to the consoele
 void console_puts(char *s)
 {
 	while (*s != '\000') {
@@ -156,6 +164,7 @@ void console_puts(char *s)
 	}
 }
 
+// ISR: Only RX ISR is used
 void usart6_isr(void)
 {
 	static uint8_t data = 'A';
@@ -169,28 +178,16 @@ void usart6_isr(void)
 
 		/* Retrieve the data from the peripheral. */
 		data = usart_recv(USART6);
+		// if CR received discard this, otherwise add to input buffer
 		if(data!=0x0D)uart_rx_buffer[rx_position++]=data;
+		// If CR received, do something with the rx buffer
 		if(data ==0x0D)
 		{
 			interpret_command();
-			//usart_enable_tx_interrupt(USART6);
+			
 		}
 
-		/* Enable transmit interrupt so it sends back the data. */
-		//usart_enable_tx_interrupt(USART6);
+
 	}
-/*
-	// Check if we were called because of TXE. 
-	if (((USART_CR1(USART6) & USART_CR1_TXEIE) != 0) &&
-	    ((USART_SR(USART6) & USART_SR_TXE) != 0)) {
 
-
-		// Put data into the transmit register. 
-			//usart_send(USART6, data+0x01);
-
-
-		// Disable the TXE interrupt as we don't need it anymore. 
-		usart_disable_tx_interrupt(USART6);
-
-	}*/
 }
