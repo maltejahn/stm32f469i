@@ -50,6 +50,14 @@ struct rgb_color{
 	} ;
 
 
+struct button{
+		uint16_t	start_x;
+    uint16_t	end_x;
+    uint16_t	start_y;
+    uint16_t	end_y;
+    picture *img;
+    uint8_t touch_status;
 
+	} ;
 
 #endif  /*GRAPHICS.H */

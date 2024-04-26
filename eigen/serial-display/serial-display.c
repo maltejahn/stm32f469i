@@ -32,6 +32,11 @@
 #include "sky.h"
 extern char _ebss, _stack;
 
+#define TOUCH_PRESSED 1
+#define TOUCH_NOT_PRESSED 0
+
+
+uint8_t invert;
 
 uint32_t usart_table[6] = {
 	USART1,
@@ -43,13 +48,48 @@ uint32_t usart_table[6] = {
 };
 
 
+struct touch{
+	uint16_t	x;
+    uint16_t	y;
 
 
+	} ;
+
+	struct button button1;
+	struct touch mytouch;
+
+	
+	struct button button1 = {0,400,360,480,&Emo2_Image,0};
+	
 
 
 void dma2d_digit(int x, int y, int d, uint32_t color, uint32_t outline);
 
 void generate_background(void);
+void init_ui(GFX_CTX *g);
+
+void init_ui(GFX_CTX *g){
+	
+	//just flip the image to see if buttons are working - later i will be replaced by a icon where inverting colors indicate a status
+	uint8_t rot=NO_ROTATE;
+	if(button1.touch_status==0x01){
+		rot=ROTATE_CCW;
+	}
+	CopyImg_RGB565(g,&Emo2_Image,button1.start_x,button1.start_y,rot,invert);
+	//CopyImg_RGB565(g,&sky_Image,50,50,NO_ROTATE, 0);
+
+}
+uint8_t check_button(struct button thisbutton);
+uint8_t check_button(struct button thisbutton){
+	if(mytouch.x>= thisbutton.start_x && mytouch.x<= thisbutton.end_x && mytouch.y>= thisbutton.start_y && mytouch.y<= thisbutton.end_x )
+	{
+		return TOUCH_PRESSED;
+	}
+	else{
+		return TOUCH_NOT_PRESSED;
+	}
+
+}
 
 
 
@@ -188,10 +228,7 @@ bg_draw_pixel(void *fb, int x, int y, GFX_COLOR color)
 	*((uint32_t *) fb + (y * 800) + x) = color.raw;
 }
 
-/*
- * This generates a "pleasant" background which looks a bit
- * like graph paper.
- */
+// static background image - frames for button, frames for info buttons
 void
 generate_background(void)
 {
@@ -227,11 +264,11 @@ generate_background(void)
 	gfx_draw_rounded_rectangle_at(g, 2, 2, 796, 476, 15, DARK_GRID);
 	*/
 
-	gfx_draw_rounded_rectangle_at(g, 0, 400, 800, 80, 15, GFX_COLOR_RED);
-	gfx_draw_rounded_rectangle_at(g, 1, 401, 798, 78, 15, GFX_COLOR_RED);
-	gfx_draw_rounded_rectangle_at(g, 2, 402, 796, 76, 15, GFX_COLOR_RED);
-	gfx_draw_rounded_rectangle_at(g, 3, 403, 794, 74, 15, GFX_COLOR_RED);
-	gfx_draw_rounded_rectangle_at(g, 4, 404, 792, 72, 15, GFX_COLOR_RED);
+	gfx_draw_rounded_rectangle_at(g, 0, 350, 800, 130, 15, GFX_COLOR_RED);
+	gfx_draw_rounded_rectangle_at(g, 1, 351, 798, 128, 15, GFX_COLOR_RED);
+	gfx_draw_rounded_rectangle_at(g, 2, 352, 796, 126, 15, GFX_COLOR_RED);
+	gfx_draw_rounded_rectangle_at(g, 3, 353, 794, 124, 15, GFX_COLOR_RED);
+	gfx_draw_rounded_rectangle_at(g, 4, 354, 792, 122, 15, GFX_COLOR_RED);
 }
 
 
@@ -332,16 +369,16 @@ main(void) {
 	int	opt, ds;
 	uint16_t touch_x, touch_y;
 	touch_event *te;
-	uint8_t invert;
+	
 
 	GFX_CTX local_context;
 	GFX_CTX *g;
 	//clock_setup(168000000,0);
 	clock_setup_rcc();
-	//console_setup(57600);
+	console_setup(57600);
 	usart_setup();
 	gpio_led_setup();
-
+	
 	/* Enable the clock to the DMA2D device */
 
 
@@ -354,6 +391,8 @@ main(void) {
 	
 	g = gfx_init(&local_context, draw_pixel, 800, 480, GFX_FONT_LARGE, 
 						(void *)FRAMEBUFFER_ADDRESS);
+
+	
 	//opt = 4; /* screen clearing mode */
 	//can_switch = -1; /* auto switching every 10 seconds */
 	t0 = mtime();
@@ -373,17 +412,30 @@ main(void) {
 
 
 dma2d_bgfill();
+init_ui(g);
 
 		te=get_touch(0);
 		if(te != NULL){
-			touch_x=te->tp[0].x;
-			touch_y=te->tp[0].y;
-			if(touch_x>50 && touch_x<200 && touch_y >400 && touch_y<480) {
+			mytouch.x=te->tp[0].x;
+			mytouch.y=te->tp[0].y;
+			/*
+			if(mytouch.x>50 && mytouch.x<200 && mytouch.y >400 && mytouch.y<480) {
 				invert=1;
 
 			}
 			else{
 				invert=0;
+			}*/
+
+			if(check_button(button1)== TOUCH_PRESSED){
+				invert=1;
+				button1.touch_status=TOUCH_PRESSED;
+				
+			}
+			else{
+				invert=0;
+				button1.touch_status=TOUCH_NOT_PRESSED;
+				
 			}
 		}
 
@@ -401,7 +453,7 @@ dma2d_bgfill();
 		//CopyImg_RGB565(g,&Emo2_Image,50,250,NO_ROTATE);
 		//CopyImg_RGB565(g,&bild_Image,350,10,ROTATE_CW);
 		//CopyImg_RGB332(g,&Emo1_VGA_Image,300,50);
-		CopyImg_RGB565(g,&sky_Image,50,50,NO_ROTATE, invert);
+		//CopyImg_RGB565(g,&sky_Image,50,50,NO_ROTATE, invert);
 		t1 = mtime();
 
 		/* this computes a running average of the last 10 frames */
@@ -418,9 +470,9 @@ dma2d_bgfill();
 
 		gfx_set_text_cursor(g, 25, 55 + DISP_HEIGHT + 3 * ((gfx_get_text_height(g) * 3) + 2));
 		gfx_puts(g, "TEST: ");
-		snprintf(buf, 35, "x %3d", touch_x);
+		snprintf(buf, 35, "x %3d", mytouch.x);
 		gfx_puts(g, (char *)buf);
-		snprintf(buf, 35, "y %3d", touch_y);
+		snprintf(buf, 35, "y %3d", mytouch.y);
 		gfx_puts(g, (char *)buf);
 
 
