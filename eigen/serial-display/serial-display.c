@@ -20,17 +20,10 @@
 #include <malloc.h>
 
 #include "main.h"
+#include "include/graphics.h"
 
-//--------------------------------------------------------------
-// Struktur von einem Image
-//--------------------------------------------------------------
-typedef struct picture_t
-{
-  const uint16_t *table; // Tabelle mit den Daten
-  uint16_t width;        // Breite des Bildes (in Pixel)
-  uint16_t height;       // Hoehe des Bildes  (in Pixel)
-  uint8_t colorspace;
-}picture;
+#include "../../demos/util/util.h"
+#include "../../demos/util/helpers.h"
 
 // include picture files
 #include "Emo2_Image.h"
@@ -48,127 +41,22 @@ uint32_t usart_table[6] = {
 	UART5,
 	USART6,
 };
-#define NO_ROTATE		0
-#define ROTATE_CW		1
-#define ROTATE_CCW		2
-#define FLIP_HORIZONTAL 3
-#define FLIP_VERTICAL	4
-
-struct rgb_color{
-		uint8_t	* r;
-		uint8_t	* g;
-		uint8_t	* b;
-
-	} ;
 
 
 
-#include "../../demos/util/util.h"
-#include "../../demos/util/helpers.h"
+
+
 
 void dma2d_digit(int x, int y, int d, uint32_t color, uint32_t outline);
 
 void generate_background(void);
 
-void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rotate,uint8_t invert_color);
-void CopyImg_RGB332(GFX_CTX *g,picture *img, uint16_t x, uint16_t y);
-
-
-struct rgb_color convert_colorspace(uint32_t c, uint8_t colorspace){
-	static struct rgb_color colors;
-	
-	if(colorspace == RGB565){
-	colors.r=((c )>>11)<<3;
-	colors.g=((c & 0x7E0)>>5)<<2;
-	colors.b=((c &0x1F))<<3;
-	}
-	else if (colorspace ==RGB332){
-		colors.r=((c )>>5)<<5;
-		colors.g=((c & 0x1C)>>2)<<5;
-		colors.b=((c &0x03))<<6;
-	}
-	else if(colorspace==RGB888){
-
-	}
-
-	return colors;
-
-}
-
-void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rotate,uint8_t invert_color){
-
-
-  uint32_t pixel_color;
-  uint8_t red, green, blue;
-const uint16_t *value;
-  value=&img->table[0];
-  static struct rgb_color conv_colors;
-  
-
-  uint32_t xn, yn;
-
-if(rotate==NO_ROTATE){
-  for(yn=0; yn <= img->height;yn++){
-	for(xn=0; xn <= img->width;xn++){
-		pixel_color=value[yn*img->width+xn];
-		conv_colors=convert_colorspace(pixel_color,RGB565);
-		if(invert_color==1)conv_colors.r=1 - *conv_colors.r;
-		//gfx_draw_point_at(g, x+xn, y+yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
-		if(pixel_color!=0x00 )gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {conv_colors.b,conv_colors.g,conv_colors.r,0xFF}});
-		if(pixel_color==0x00 && invert_color==1)gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {0,0,0xFF,0xFF}});
-		//(GFX_COLOR){.c = {blu, grn, red, 0xff}
-
-	}
-  }
-}
-
-
-if(rotate==ROTATE_CCW){
-  for(xn=0; xn <= img->height;xn++){
-	for(yn=0; yn <= img->width;yn++){
-		pixel_color=value[xn*img->width+yn];
-		conv_colors=convert_colorspace(pixel_color,RGB565);
-		gfx_draw_point_at(g, x+xn, y+yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
-	}
-  }
-}
-if(rotate==ROTATE_CW){
-  for(xn=0; xn <= img->height;xn++){
-	for(yn=0; yn <= img->width;yn++){
-		pixel_color=value[xn*img->width+yn];
-		conv_colors=convert_colorspace(pixel_color,RGB565);
-		gfx_draw_point_at(g, x+xn, y-yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
-
-	}
-  }
-}
 
 
 
-}
-
-void CopyImg_RGB332(GFX_CTX *g,picture *img, uint16_t x, uint16_t y){
 
 
-  uint32_t pixel_color;
-  uint8_t red, green, blue;
-  const uint8_t *value;
-  value=&img->table[0];
-  uint32_t xn, yn;
-  static struct rgb_color conv_colors;
 
-
-    for(yn=0; yn <= img->height;yn++){
-	for(xn=0; xn <= img->width;xn++){
-		pixel_color=value[yn*img->width+xn];
-		conv_colors=convert_colorspace(pixel_color,RGB332);
-		gfx_draw_point_at(g, x+xn, y+yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
-
-	}
-  }
-
-
-}
 
 /*
  * relocate the heap to the DRAM, 10MB at 0xC0000000
@@ -181,18 +69,7 @@ local_heap_setup(uint8_t **start, uint8_t **end)
 	*end = (uint8_t *)(0xc0000000 + (10 * 1024 * 1024));
 }
 
-/*
- *   This defines a parameterized 7 segment display graphic
- *   overall graphic is DISP_WIDTH pixels wide by DISP_HEIGHT
- *   pixels tall.
- *
- *   Segments are SEG_THICK pixels "thick".
- *
- *   Gaps between segments are SEG_GAP pixel(s)
- */
 
-#define DISP_HEIGHT 100
-#define DISP_WIDTH (DISP_HEIGHT / 2)
 
 
 
@@ -357,143 +234,11 @@ generate_background(void)
 	gfx_draw_rounded_rectangle_at(g, 4, 404, 792, 72, 15, GFX_COLOR_RED);
 }
 
-/* Digits zero through 9, : and . */
-struct digit_fb {
-	int	w, h;	/* width and height */
-	uint8_t *data;
-} digits[12];
-
-/*
- * This should be a data buffer which can hold 10 digits,
- * a colon, and a decimal point, note that pixels in this
- * buffer are one byte each.
- */
-void digit_draw_pixel(void *, int x, int y, GFX_COLOR color);
-void print_digit(int n);
-
-
-/* This is the simple graphics helper function to draw into it */
-void
-digit_draw_pixel(void *fb, int x, int y, GFX_COLOR color)
-{
-	struct digit_fb *digit = (struct digit_fb *)(fb);
-	uint8_t	c = (uint8_t) color.raw;
-	*(digit->data + (y * digit->w) + x) = c;
-}
 
 
 
 
 
-/*
- * This then uses the DMA2D peripheral to copy a digit from the
- * pre-rendered digit buffer, and render it into the main display
- * area. It does what many people call a "cookie cutter" blit, which
- * is that the pixels that have color (are non-zero) are rendered
- * but when the digit buffer has a value of '0' the background is
- * rendered.
- *
- * The digit colors are stored in the Foreground color lookup
- * table, they are as passed in, except color 0 (background)
- * is always 0.
- *
- * DMA2D is set up to read the original image (which has alpha of
- * 0xff (opaque) and then it multiples that alpha and the color
- * alpha, and 0xFF renders the digit color opaquely, 0x00 renders
- * the existing color. When drawing drop shadows we use an alpha
- * of 0x80 which makes the drop shadows 50% transparent.
- */
-#ifndef DMA2D_FG_CLUT
-#define DMA2D_FG_CLUT	(uint32_t *)(DMA2D_BASE + 0x0400UL)
-#endif
-#ifndef DMA2D_BG_CLUT
-#define DMA2D_BG_CLUT	(uint32_t *)(DMA2D_BASE + 0x0800UL)
-#endif
-
-void
-dma2d_digit(int x, int y, int d, uint32_t color, uint32_t outline)
-{
-	uint32_t t;
-	struct digit_fb *digit;
-
-	while (DMA2D_CR & DMA2D_CR_START);
-	/* This is going to be a memory to memory with PFC transfer */
-	DMA2D_CR = DMA2D_SET(CR, MODE, DMA2D_CR_MODE_M2MWB);
-
-	digit = &digits[d];
-
-	*(DMA2D_FG_CLUT) = 0x0; /* transparent black */
-	*(DMA2D_FG_CLUT+1) = color; /* foreground */
-	*(DMA2D_FG_CLUT+2) = outline; /* outline color */
-
-	/* compute target address */
-	t = (uint32_t) FRAMEBUFFER_ADDRESS + (800 * 4 * y) + x * 4;
-	/* Output goes to the main frame buffer */
-	DMA2D_OMAR = t;
-	/* Its also the pixels we want to read incase the digit is
-	 * transparent at that point
-	 */
-	DMA2D_BGMAR = t;
-	DMA2D_BGPFCCR = DMA2D_SET(xPFCCR, CM, DMA2D_xPFCCR_CM_ARGB8888) |
-					DMA2D_SET(xPFCCR, AM, 0);
-
-	/* output frame buffer is ARGB8888 */
-	DMA2D_OPFCCR = 0; /* DMA2D_OPFCCR_CM_ARGB8888; */
-
-	/*
-	 * This sets the size of the "box" we're going to copy. For the
-	 * digits it is DISP_WIDTH + SKEW_MAX pixels wide for the ':' and
-	 * '.' character is will be SEG_THICK + SKEW_MAX wide, it is always
-	 * DISP_HEIGHT tall.
-	 */
-
-	/* So this then describes the box size */
-	DMA2D_NLR = DMA2D_SET(NLR, PL, digit->w) | DISP_HEIGHT;
-	/*
-	 * This is how many additional pixels we need to move to get to
-	 * the next line of output.
-	 */
-	DMA2D_OOR = 800 - digit->w;
-	/*
-	 * This is how many additional pixels we need to move to get to
-	 * the next line of background (which happens to be the output
-	 * so it is the same).
-	 */
-	DMA2D_BGOR = 800 - digit->w;
-	/*
-	 * And finally this is the additional pixels we need to move
-	 * to get to the next line of the pre-rendered digit buffer.
-	 */
-	DMA2D_FGOR = 0;
-
-	/*
-	 * And this points to the top left corner of the prerendered
-	 * digit buffer, where the digit (or character) top left
-	 * corner is.
-	 */
-	DMA2D_FGMAR = (uint32_t) (digit->data);
-
-	/* Set up the foreground data descriptor
-	 *    - We are only using 3 of the colors in the lookup table (CLUT)
-	 *	  - We don't set alpha since it is in the lookup table
-	 *	  - Alpha mode is 'don't modify' (00)
-	 *	  - CLUT color mode is ARGB8888 (0)
-	 *	  - Color Mode is L8 (0101) or one 8 byte per pixel
-	 *
-	 */
-	DMA2D_FGPFCCR = DMA2D_SET(xPFCCR, CS, 255) |
-					DMA2D_SET(xPFCCR, ALPHA, 255) |
-					DMA2D_SET(xPFCCR, AM, 0) |
-					DMA2D_SET(xPFCCR, CM, DMA2D_xPFCCR_CM_L8);
-	/*
-	 * Transfer it!
-	 */
-	DMA2D_CR |= DMA2D_CR_START;
-	if (DMA2D_ISR & DMA2D_ISR_CEIF) {
-		printf("Configuration error\n");
-		while (1);
-	}
-}
 
 
 
@@ -583,7 +328,7 @@ main(void) {
 	char *scr_opt;
 	int f_ndx = 0;
 	float avg_frame;
-	int	can_switch;
+	//int	can_switch;
 	int	opt, ds;
 	uint16_t touch_x, touch_y;
 	touch_event *te;
@@ -593,7 +338,7 @@ main(void) {
 	GFX_CTX *g;
 	//clock_setup(168000000,0);
 	clock_setup_rcc();
-	console_setup(57600);
+	//console_setup(57600);
 	usart_setup();
 	gpio_led_setup();
 
@@ -609,8 +354,8 @@ main(void) {
 	
 	g = gfx_init(&local_context, draw_pixel, 800, 480, GFX_FONT_LARGE, 
 						(void *)FRAMEBUFFER_ADDRESS);
-	opt = 4; /* screen clearing mode */
-	can_switch = -1; /* auto switching every 10 seconds */
+	//opt = 4; /* screen clearing mode */
+	//can_switch = -1; /* auto switching every 10 seconds */
 	t0 = mtime();
 	ds = 0;
 	
