@@ -10,8 +10,13 @@ Aim:
 
 -> Changing libopencm3 to a more recent version
 
+
+Usage:
+
 Initialize submodules after git clone
-git submodule update --init --recursive
+    git submodule update --init --recursive
+Use F1 + Select Configuration inside VSCODE to select one of the targets I`m playing around
+
 
 
 STM32F469I-Discovery Code
