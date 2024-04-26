@@ -23,23 +23,16 @@
 			}
 		},
 		{
-            "label": "Build all",
-            "group": "build",
-            "type": "shell",
-            "command": "make",
-            "args": ["all", "-j4","eigen/usart_irq_own/usart_irq_own.c"]
-		
-        },
-		{
 			"label": "make",
 			"type": "shell",
 			"options": {
 				"cwd": "${workspaceFolder}/${input:TargetSubDir}"
 			},
+			
 			"command": "make",
 			"args": [
 				{
-					"value": "${input:makeTarget}",
+					"value": "all",
 					"quoting": "weak"
 				}
 			],
@@ -47,10 +40,49 @@
 			"presentation": {
 				"group": "make",
 				"reveal": "always",
-				"panel": "dedicated",
 				"clear": false
 			}
-		}
+        },
+		{
+			"label": "make-clean",
+			"type": "shell",
+			"options": {
+				"cwd": "${workspaceFolder}/${input:TargetSubDir}"
+			},
+			
+			"command": "make",
+			"args": [
+				{
+					"value": "clean",
+					"quoting": "weak"
+				}
+			],
+			"group": "build",
+			"presentation": {
+				"group": "make",
+				"reveal": "always",
+				"clear": false
+			}
+        },
+		{
+			"label": "make-clean-make-all",
+			"type": "shell",
+			"options": {
+				"cwd": "${workspaceFolder}/${input:TargetSubDir}"
+			},
+			
+			"command": "make",
+			"args": [
+				"clean",
+				"all"
+			],
+			"group": "build",
+			"presentation": {
+				"group": "make",
+				"reveal": "always",
+				"clear": false
+			}
+        },
 	],
 	"version":"2.0.0",
 	"inputs": [
@@ -62,6 +94,7 @@
 				"all",
 				"flash",
 				"clean",
+				"clean all",
 			],
 			"default": "component"
 		},

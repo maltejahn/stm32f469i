@@ -6,37 +6,28 @@
     "configurations": [
         {
             "cwd": "${workspaceFolder}/${input:TargetSubDir}",
-            "executable": "${workspaceFolder}/${input:TargetSubDir}/usart_irq_own.elf",
+            "executable": "${workspaceFolder}/${input:TargetSubDir}/${input:elf}",
             "name": "Debug with ST-Util",
             "request": "launch",
             "type": "cortex-debug",
             "device" : "STM32F469HI",
             "runToEntryPoint": "main",
             "showDevDebugOutput": "none",
-            "servertype": "stutil"
-        },
-        {
-            "cwd": "${workspaceFolder}/${input:TargetSubDir}",
-            "executable": "${workspaceFolder}/${input:TargetSubDir}/usart_irq_own.elf",
-            "name": "Debug with ST-Link",
-            "request": "launch",
-            "type": "cortex-debug",
-            "runToEntryPoint": "main",
-            "showDevDebugOutput": "both",
-            "servertype": "stlink",
-            "debugServer": 4242
+            "servertype": "stutil",
+            "svdFile": "${workspaceRoot}/STM32F469.svd",
         },
           {
-            "name": "My Debug",
+            "name": "OpenOCD",
             "cwd": "${workspaceFolder}/${input:TargetSubDir}",
-            "executable": "${workspaceFolder}/${input:TargetSubDir}/usart_irq_own.elf",
+            "executable": "${workspaceFolder}/${input:TargetSubDir}/${input:elf}",
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "openocd",
             "interface":"swd",
             "device": "STM32F767",
+            "preLaunchTask": "make-clean-make-all",
             "configFiles": [
-                "openocd.cfg"
+                "${workspaceFolder}/openocd.cfg"
             ],
             "svdFile": "${workspaceRoot}/STM32F469.svd",
             //"preLaunchTask": "Build All",

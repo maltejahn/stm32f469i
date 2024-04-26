@@ -3,7 +3,8 @@
         {
             "name": "USART_IRQ_OWN",
             "customConfigurationVariables": {
-                "TargetSubDir": "eigen/usart_irq_own"
+                "TargetSubDir": "eigen/usart_irq_own",
+                "elf":"usart_irq_own.elf"
             },
             "includePath": [
                 "${workspaceFolder}/libopencm3/include"
@@ -17,7 +18,30 @@
               ]  
             },
             "intelliSenseMode": "linux-gcc-x64",
-            "compilerPath": "/usr/bin/clang-14",
+            //"compilerPath": "/usr/bin/clang-14",
+            "cStandard": "c17",
+            "cppStandard": "c++14"
+        },
+        {
+            "name": "SERIAL-DISPLAY",
+            "customConfigurationVariables": {
+                "TargetSubDir": "eigen/serial-display",
+                "elf":"serial-display.elf"
+            },
+            "includePath": [
+                "${workspaceFolder}/libopencm3/include",
+                "${workspaceFolder}/simple-graphics/include"
+            ],
+            "defines": [
+                "STM32F4"
+            ],
+            "browse": {
+              "path": [
+                "${workspaceFolder}/eigen/serial-display"
+              ]  
+            },
+            "intelliSenseMode": "linux-gcc-x64",
+            //"compilerPath": "/usr/bin/clang-14",
             "cStandard": "c17",
             "cppStandard": "c++14"
         }
