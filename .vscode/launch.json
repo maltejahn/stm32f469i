@@ -13,6 +13,7 @@
             "device" : "STM32F469HI",
             "runToEntryPoint": "main",
             "showDevDebugOutput": "none",
+            "preLaunchTask": "make-clean-make-all",
             "servertype": "stutil",
             "svdFile": "${workspaceRoot}/STM32F469.svd",
         },
@@ -30,7 +31,6 @@
                 "${workspaceFolder}/openocd.cfg"
             ],
             "svdFile": "${workspaceRoot}/STM32F469.svd",
-            //"preLaunchTask": "Build All",
             "showDevDebugOutput": "both",
             
         },
