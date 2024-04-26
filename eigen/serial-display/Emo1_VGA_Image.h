@@ -2,6 +2,7 @@
 // Autor    : UB
 // EMail    : mc-4u(@)t-online.de
 // Web      : www.mikrocontroller-4u.de
+// slightly modified  original from webpage maltejahn
 //--------------------------------------------------------------
 
 

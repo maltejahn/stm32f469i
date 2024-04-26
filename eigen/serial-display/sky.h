@@ -4,6 +4,8 @@
  *
  * This bitmap from the file 'Skyeklein.png'
  */
+
+// sky from paw patrol
 #include <inttypes.h>
 #include "main.h"
 
