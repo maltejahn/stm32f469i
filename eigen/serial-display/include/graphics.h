@@ -42,9 +42,13 @@ typedef struct picture_t
 #define BG_COLOR_GREEN 0x00FF00
 #define BG_COLOR_BLUE 0x0000FF
 
-void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rotate,uint32_t bg_color);
+#define TRANSPARENT 1
+#define NOT_TRANSPARENT 0
+
+void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rotate,uint32_t bg_color,uint8_t transparency);
 void CopyImg_RGB332(GFX_CTX *g,picture *img, uint16_t x, uint16_t y);
 struct rgb_color convert_colorspace(uint32_t c, uint8_t colorspace);
+void draw_image_pixel(GFX_CTX *g, uint16_t x, uint16_t y,struct  rgb_color c);
 
 struct rgb_color{
 		uint8_t	* r;

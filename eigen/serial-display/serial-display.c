@@ -77,7 +77,7 @@ void init_ui(GFX_CTX *g){
 	if(button1.touch_status==0x01){
 		rot=ROTATE_CCW;
 	}
-	CopyImg_RGB565(g,&button1.img,button1.start_x,button1.start_y,rot,invert);
+	CopyImg_RGB565(g,&button1.img,button1.start_x,button1.start_y,rot,invert,NOT_TRANSPARENT);
 	//CopyImg_RGB565(g,&sky_Image,50,50,NO_ROTATE, 0);
 
 }
@@ -450,7 +450,7 @@ init_ui(g);
 		gfx_puts(g, (char *)"Hello world Supa Display DMA2D!");
 
 
-		CopyImg_RGB565(g,&Emo2_Image,300,250,NO_ROTATE,0);
+		CopyImg_RGB565(g,&Emo2_Image,300,250,NO_ROTATE,0,NOT_TRANSPARENT);
 		//CopyImg_RGB565(g,&Emo2_Image,200,250,ROTATE_CW);
 		//CopyImg_RGB565(g,&Emo2_Image,50,250,NO_ROTATE);
 		//CopyImg_RGB565(g,&bild_Image,350,10,ROTATE_CW);
@@ -458,7 +458,9 @@ init_ui(g);
 		//CopyImg_RGB565(g,&rain_Image,50,50,NO_ROTATE, 0);
 		//CopyImg_RGB565(g,&rain_Image,250,50,NO_ROTATE, 0x00ff);
 
-		CopyImg_RGB565(g,&rain_Image,50,250,NO_ROTATE, BG_COLOR_BLUE);
+		CopyImg_RGB565(g,&rain_Image,50,250,NO_ROTATE, BG_COLOR_BLUE,NOT_TRANSPARENT);
+		CopyImg_RGB565(g,&rain_Image,250,250,NO_ROTATE, BG_COLOR_BLUE,TRANSPARENT);
+		CopyImg_RGB565(g,&rain_Image,550,250,ROTATE_CW, BG_COLOR_BLUE,TRANSPARENT);
 		CopyImg_RGB332(g,&rain_2_Image,300,50);
 		t1 = mtime();
 

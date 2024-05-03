@@ -37,9 +37,12 @@ struct rgb_color convert_colorspace(uint32_t c, uint8_t colorspace){
 	return colors;
 
 }
+void draw_image_pixel(GFX_CTX *g, uint16_t x, uint16_t y,struct  rgb_color c){
+	gfx_draw_point_at(g, x, y, (GFX_COLOR){.c = {c.b,c.g,c.r,0xFF}});
+}
 
 
-void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rotate,uint32_t bg_color){
+void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rotate,uint32_t bg_color,uint8_t transparency){
 
 
   	uint32_t pixel_color;
@@ -64,15 +67,19 @@ void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rot
 				// convert the colors ti RGB888
 				conv_colors=convert_colorspace(pixel_color,RGB565);
 				bg_c=convert_colorspace(bg_color,RGB888);
-				// if the color isnt pure white (0x00), print the pixel. When its pure white, pixel is skipped
+
 				
-				if(pixel_color!=0xffff )gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {conv_colors.b,conv_colors.g,conv_colors.r,0xFF}});
+
+				if(pixel_color!=0xffff ) draw_image_pixel(g, x+xn, y+yn,conv_colors);
+				//if(pixel_color!=0xffff )gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {conv_colors.b,conv_colors.g,conv_colors.r,0xFF}});
 				//if(pixel_color!=0xFFFF )gfx_draw_point_at(g, x+xn, y+yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
-			
+
 				// probably here will come som kind of invert (pressed button)
-				if(pixel_color==0xffff && bg_color!=0)gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {bg_c.b,bg_c.g,bg_c.r,0xFF}});
-				//if(pixel_color==0xffff && bg_color!=0)gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {0,255,0,0xFF}});
 				
+				if(transparency == NOT_TRANSPARENT){
+				if(pixel_color==0xffff && bg_color!=0 ) draw_image_pixel(g, x+xn, y+yn,bg_c);
+				//if(pixel_color==0xffff && bg_color!=0)gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {bg_c.b,bg_c.g,bg_c.r,0xFF}});
+				}
 
 			}
 		}
@@ -84,7 +91,9 @@ if(rotate==ROTATE_CCW){
 	for(yn=0; yn <= img->width;yn++){
 		pixel_color=value[xn*img->width+yn];
 		conv_colors=convert_colorspace(pixel_color,RGB565);
-		gfx_draw_point_at(g, x+xn, y+yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
+		//gfx_draw_point_at(g, x+xn, y+yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
+		draw_image_pixel(g, x+xn, y+yn,conv_colors);
+
 	}
   }
 }
@@ -95,6 +104,7 @@ if(rotate==ROTATE_CW){
 		pixel_color=value[xn*img->width+yn];
 		conv_colors=convert_colorspace(pixel_color,RGB565);
 		gfx_draw_point_at(g, x+xn, y-yn, COLOR(conv_colors.r,conv_colors.g,conv_colors.b));
+		draw_image_pixel(g, x+xn, y+yn,conv_colors);
 
 	}
   }
