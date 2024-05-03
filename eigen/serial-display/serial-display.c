@@ -28,6 +28,7 @@
 // include picture files
 #include "Emo2_Image.h"
 #include "Emo1_VGA_Image.h"
+#include "washing_machine.h"
 #include "bild.h"
 #include "sky.h"
 extern char _ebss, _stack;
@@ -59,7 +60,7 @@ struct touch{
 	struct touch mytouch;
 
 	
-	struct button button1 = {0,400,360,480,&Emo2_Image,0};
+	struct button button1 = {0,400,360,480,&washing_machine_Image,0};
 	
 
 
@@ -75,7 +76,7 @@ void init_ui(GFX_CTX *g){
 	if(button1.touch_status==0x01){
 		rot=ROTATE_CCW;
 	}
-	CopyImg_RGB565(g,&Emo2_Image,button1.start_x,button1.start_y,rot,invert);
+	CopyImg_RGB565(g,&button1.img,button1.start_x,button1.start_y,rot,invert);
 	//CopyImg_RGB565(g,&sky_Image,50,50,NO_ROTATE, 0);
 
 }
@@ -453,7 +454,7 @@ init_ui(g);
 		//CopyImg_RGB565(g,&Emo2_Image,50,250,NO_ROTATE);
 		//CopyImg_RGB565(g,&bild_Image,350,10,ROTATE_CW);
 		//CopyImg_RGB332(g,&Emo1_VGA_Image,300,50);
-		//CopyImg_RGB565(g,&sky_Image,50,50,NO_ROTATE, invert);
+		CopyImg_RGB565(g,&washing_machine_Image,50,50,NO_ROTATE, invert);
 		t1 = mtime();
 
 		/* this computes a running average of the last 10 frames */

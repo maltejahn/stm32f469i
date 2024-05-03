@@ -49,6 +49,7 @@ void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rot
 				conv_colors=convert_colorspace(pixel_color,RGB565);
 				// if the color isnt pure white (0x00), print the pixel. When its pure white, pixel is skipped
 				if(pixel_color!=0x00 )gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {conv_colors.b,conv_colors.g,conv_colors.r,0xFF}});
+			
 				// probably here will come som kind of invert (pressed button)
 				if(pixel_color==0x00 && invert_color==1)gfx_draw_point_at(g, x+xn, y+yn, (GFX_COLOR){.c = {0,0,0xFF,0xFF}});
 				
