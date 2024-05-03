@@ -38,7 +38,11 @@ typedef struct picture_t
 #define DISP_WIDTH (DISP_HEIGHT / 2)
 
 
-void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rotate,uint8_t invert_color);
+#define BG_COLOR_RED 0xFF0000
+#define BG_COLOR_GREEN 0x00FF00
+#define BG_COLOR_BLUE 0x0000FF
+
+void CopyImg_RGB565(GFX_CTX *g,picture *img, uint16_t x, uint16_t y, uint8_t rotate,uint32_t bg_color);
 void CopyImg_RGB332(GFX_CTX *g,picture *img, uint16_t x, uint16_t y);
 struct rgb_color convert_colorspace(uint32_t c, uint8_t colorspace);
 

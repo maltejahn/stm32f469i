@@ -26,11 +26,12 @@
 #include "../../demos/util/helpers.h"
 
 // include picture files
+#include "rain_150x150.h"
+#include "rain_150x150_2.h"
 #include "Emo2_Image.h"
-#include "Emo1_VGA_Image.h"
-#include "washing_machine.h"
-#include "bild.h"
 #include "sky.h"
+#include "Emo1_VGA_Image.h"
+
 extern char _ebss, _stack;
 
 #define TOUCH_PRESSED 1
@@ -60,7 +61,7 @@ struct touch{
 	struct touch mytouch;
 
 	
-	struct button button1 = {0,400,360,480,&washing_machine_Image,0};
+	//struct button button1 = {0,400,360,480,&washing_machine_Image,0};
 	
 
 
@@ -449,12 +450,16 @@ init_ui(g);
 		gfx_puts(g, (char *)"Hello world Supa Display DMA2D!");
 
 
-		//CopyImg_RGB565(g,&Emo2_Image,300,250,ROTATE_CCW);
+		CopyImg_RGB565(g,&Emo2_Image,300,250,NO_ROTATE,0);
 		//CopyImg_RGB565(g,&Emo2_Image,200,250,ROTATE_CW);
 		//CopyImg_RGB565(g,&Emo2_Image,50,250,NO_ROTATE);
 		//CopyImg_RGB565(g,&bild_Image,350,10,ROTATE_CW);
 		//CopyImg_RGB332(g,&Emo1_VGA_Image,300,50);
-		CopyImg_RGB565(g,&washing_machine_Image,50,50,NO_ROTATE, invert);
+		//CopyImg_RGB565(g,&rain_Image,50,50,NO_ROTATE, 0);
+		//CopyImg_RGB565(g,&rain_Image,250,50,NO_ROTATE, 0x00ff);
+
+		CopyImg_RGB565(g,&rain_Image,50,250,NO_ROTATE, BG_COLOR_BLUE);
+		CopyImg_RGB332(g,&rain_2_Image,300,50);
 		t1 = mtime();
 
 		/* this computes a running average of the last 10 frames */
