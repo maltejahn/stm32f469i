@@ -49,20 +49,27 @@ uint32_t usart_table[6] = {
 	USART6,
 };
 
+struct button{
+	const uint16_t	start_x;
+    const uint16_t	end_x;
+    const uint16_t	start_y;
+    const uint16_t	end_y;
+    const picture *img;
+    uint8_t touch_status;
+
+	} ;
 
 struct touch{
 	uint16_t	x;
     uint16_t	y;
-
-
 	} ;
 
 	struct button button1;
 	struct touch mytouch;
 
 	
-	//struct button button1 = {0,400,360,480,&washing_machine_Image,0};
-	
+	//struct button button1 = {0,400,360,480,&rain_Image,0};
+	struct button button1 = {0,400,300,480,&rain_Image,0};
 
 
 void dma2d_digit(int x, int y, int d, uint32_t color, uint32_t outline);
@@ -77,13 +84,21 @@ void init_ui(GFX_CTX *g){
 	if(button1.touch_status==0x01){
 		rot=ROTATE_CCW;
 	}
-	CopyImg_RGB565(g,&button1.img,button1.start_x,button1.start_y,rot,invert,NOT_TRANSPARENT);
+	//CopyImg_RGB565(g,&button1.img,button1.start_x,button1.start_y,NO_ROTATE,BG_COLOR_BLUE,NOT_TRANSPARENT);
+	CopyImg_RGB565(g,&rain_Image,button1.start_x,button1.start_y,rot,BG_COLOR_BLUE,NOT_TRANSPARENT);
+	//CopyImg_RGB565(g,&rain_Image,0,300,NO_ROTATE, BG_COLOR_BLUE,NOT_TRANSPARENT);
 	//CopyImg_RGB565(g,&sky_Image,50,50,NO_ROTATE, 0);
 
 }
-uint8_t check_button(struct button thisbutton);
-uint8_t check_button(struct button thisbutton){
-	if(mytouch.x>= thisbutton.start_x && mytouch.x<= thisbutton.end_x && mytouch.y>= thisbutton.start_y && mytouch.y<= thisbutton.end_x )
+uint8_t check_button(struct button *thisbutton);
+uint8_t check_button(struct button *thisbutton){
+
+	uint16_t x= (*thisbutton).end_x;
+	uint16_t y= thisbutton->end_y;
+	uint16_t x1= thisbutton->start_x;
+	uint16_t y1= thisbutton->start_y;
+
+	if(mytouch.x>= thisbutton->start_x && mytouch.x<= thisbutton->end_x && mytouch.y>= thisbutton->start_y && mytouch.y<= thisbutton->end_x )
 	{
 		return TOUCH_PRESSED;
 	}
@@ -429,7 +444,7 @@ init_ui(g);
 				invert=0;
 			}*/
 
-			if(check_button(button1)== TOUCH_PRESSED){
+			if(check_button(&button1)== TOUCH_PRESSED){
 				invert=1;
 				button1.touch_status=TOUCH_PRESSED;
 				
@@ -450,7 +465,7 @@ init_ui(g);
 		gfx_puts(g, (char *)"Hello world Supa Display DMA2D!");
 
 
-		CopyImg_RGB565(g,&Emo2_Image,300,250,NO_ROTATE,0,NOT_TRANSPARENT);
+		//CopyImg_RGB565(g,&Emo2_Image,300,250,NO_ROTATE,0,NOT_TRANSPARENT);
 		//CopyImg_RGB565(g,&Emo2_Image,200,250,ROTATE_CW);
 		//CopyImg_RGB565(g,&Emo2_Image,50,250,NO_ROTATE);
 		//CopyImg_RGB565(g,&bild_Image,350,10,ROTATE_CW);
@@ -458,10 +473,13 @@ init_ui(g);
 		//CopyImg_RGB565(g,&rain_Image,50,50,NO_ROTATE, 0);
 		//CopyImg_RGB565(g,&rain_Image,250,50,NO_ROTATE, 0x00ff);
 
-		CopyImg_RGB565(g,&rain_Image,50,250,NO_ROTATE, BG_COLOR_BLUE,NOT_TRANSPARENT);
-		CopyImg_RGB565(g,&rain_Image,250,250,NO_ROTATE, BG_COLOR_BLUE,TRANSPARENT);
-		CopyImg_RGB565(g,&rain_Image,550,250,ROTATE_CW, BG_COLOR_BLUE,TRANSPARENT);
-		CopyImg_RGB332(g,&rain_2_Image,300,50);
+		//CopyImg_RGB565(g,&rain_Image,50,150,NO_ROTATE, BG_COLOR_BLUE,NOT_TRANSPARENT);
+		//CopyImg_RGB565(g,&rain_Image,200,150,ROTATE_CW, BG_COLOR_BLUE,NOT_TRANSPARENT);
+		//CopyImg_RGB565(g,&rain_Image,400,150,ROTATE_CCW, BG_COLOR_BLUE,NOT_TRANSPARENT);
+		//CopyImg_RGB565(g,&rain_Image,50,350,NO_ROTATE, BG_COLOR_BLUE,TRANSPARENT);
+		//CopyImg_RGB565(g,&rain_Image,200,350,ROTATE_CW, BG_COLOR_BLUE,TRANSPARENT);
+		//CopyImg_RGB565(g,&rain_Image,400,350,ROTATE_CCW, BG_COLOR_BLUE,TRANSPARENT);
+		//CopyImg_RGB332(g,&rain_2_Image,300,50);
 		t1 = mtime();
 
 		/* this computes a running average of the last 10 frames */
