@@ -1,3 +1,8 @@
+Status: 
+- build and run
+- no ESP till now
+- lets say.. 5% overall
+
 Trying to build a ESP32 powered WiFi Display with the STM32F469I-Disco Board based on ChuckM examples
 
 Aim:

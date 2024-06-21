@@ -38,7 +38,7 @@ typedef struct picture_t
 #define DISP_WIDTH (DISP_HEIGHT / 2)
 
 
-#define BG_COLOR_RED 0xFF0000
+#define BG_COLOR_RED 0xFFF000
 #define BG_COLOR_GREEN 0x00FF00
 #define BG_COLOR_BLUE 0x0000FF
 

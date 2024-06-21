@@ -69,7 +69,7 @@ struct touch{
 
 	
 	//struct button button1 = {0,400,360,480,&rain_Image,0};
-	struct button button1 = {0,400,300,480,&rain_Image,0};
+	struct button button1 = {50,400,300,480,&rain_Image,0};
 
 
 void dma2d_digit(int x, int y, int d, uint32_t color, uint32_t outline);
@@ -81,11 +81,22 @@ void init_ui(GFX_CTX *g){
 	
 	//just flip the image to see if buttons are working - later i will be replaced by a icon where inverting colors indicate a status
 	uint8_t rot=NO_ROTATE;
-	if(button1.touch_status==0x01){
-		rot=ROTATE_CCW;
+	uint8_t trans=0;
+	uint16_t bg=0;
+	if(button1.touch_status==TOUCH_PRESSED){
+		rot=NO_ROTATE;
+		bg=BG_COLOR_RED;
+		trans=NOT_TRANSPARENT;
+
+	}
+	else{
+		rot=NO_ROTATE;
+		bg=BG_COLOR_RED;
+		trans=TRANSPARENT;
+
 	}
 	//CopyImg_RGB565(g,&button1.img,button1.start_x,button1.start_y,NO_ROTATE,BG_COLOR_BLUE,NOT_TRANSPARENT);
-	CopyImg_RGB565(g,&rain_Image,button1.start_x,button1.start_y,rot,BG_COLOR_BLUE,NOT_TRANSPARENT);
+	CopyImg_RGB565(g,&rain_Image,button1.start_x,button1.start_y,rot,bg,trans);
 	//CopyImg_RGB565(g,&rain_Image,0,300,NO_ROTATE, BG_COLOR_BLUE,NOT_TRANSPARENT);
 	//CopyImg_RGB565(g,&sky_Image,50,50,NO_ROTATE, 0);
 
@@ -417,7 +428,6 @@ main(void) {
 	
 
 	
-	
 	while (1) {
 		//usart_send(USART6, 0x33);
 		//gpio_toggle(GPIOG, GPIO6);
@@ -427,9 +437,10 @@ main(void) {
 		//usart_send(5,0x34);
 		//console_puts("bla");
 
-
 dma2d_bgfill();
-init_ui(g);
+	init_ui(g);
+
+
 
 		te=get_touch(0);
 		if(te != NULL){
@@ -447,7 +458,7 @@ init_ui(g);
 			if(check_button(&button1)== TOUCH_PRESSED){
 				invert=1;
 				button1.touch_status=TOUCH_PRESSED;
-				
+			
 			}
 			else{
 				invert=0;
